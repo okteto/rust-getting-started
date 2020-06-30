@@ -1,0 +1,11 @@
+name: hello-world
+image: okteto/rust:1
+command: ["bash"]
+workdir: /okteto
+securityContext:
+  capabilities:
+    add:
+    - SYS_PTRACE
+forward:
+  - 3000:3000
+  - 2345:2345
