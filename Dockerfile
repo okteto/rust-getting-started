@@ -1,12 +1,13 @@
 FROM okteto/rust:1 as builder
 WORKDIR /home/rust
 
-COPY . .  
+COPY Cargo.toml .
+COPY Cargo.lock .
+COPY . . 
 RUN cargo build --release
-RUN cargo install --path .
 
-FROM alpine:3.11 as prod
+FROM rust:1 as prod
+WORKDIR /app
 
-RUN apk --no-cache add curl ca-certificates
-COPY --from=builder /home/rust/main /app/main
-CMD /app/main
+COPY --from=builder /home/rust/target/release/hello-world /app/hello-world
+CMD /app/hello-world

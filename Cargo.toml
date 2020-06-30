@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Ramiro Berrelleza <rberrelleza@gmail.com>"]
 edition = "2018"
 
+[[bin]]
+name = "hello-world"
+
 [dependencies]
 hyper = "0.13"
 pretty_env_logger = ""
