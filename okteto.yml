@@ -1,14 +1,13 @@
 build:
   hello-world:
-    image: okteto.dev/rust-hello-world:1.0.0
     context: .
 
 deploy:
-  - kubectl apply -f k8s.yml
+  - envsubst < k8s.yml | kubectl apply -f -
 
 dev:
   hello-world:
-    image: okteto/rust:1
+    image: ghcr.io/okteto/rust:1
     command: bash
     sync:
       - .:/usr/src/app
