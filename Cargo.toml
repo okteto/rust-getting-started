@@ -2,13 +2,14 @@
 name = "hello-world"
 version = "0.1.0"
 authors = ["Ramiro Berrelleza <rberrelleza@gmail.com>"]
-edition = "2018"
+edition = "2024"
 
 [[bin]]
 name = "hello-world"
+path = "src/main.rs"
 
 [dependencies]
-hyper = "0.13"
-pretty_env_logger = ""
-tokio = { version = "0.2", features = ["full"] }
-
+http-body-util = "0.1"
+hyper = { version = "1", features = ["http1", "server"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }

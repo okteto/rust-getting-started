@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Connect to okteto",
+      "type": "lldb",
+      "request": "attach",
+      "program": "/usr/src/app/target/debug/hello-world",
+      "initCommands": [
+        "platform select remote-linux",
+        "platform connect connect://127.0.0.1:2345"
+      ],
+      "sourceMap": {
+        "/usr/src/app": "${workspaceFolder}"
+      }
+    }
+  ]
+}

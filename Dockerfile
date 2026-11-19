@@ -1,13 +1,19 @@
-FROM okteto/rust:1 as builder
-WORKDIR /home/rust
+FROM rust:1.100.0-bookworm AS dev
 
-COPY Cargo.toml .
-COPY Cargo.lock .
-COPY . . 
-RUN cargo build --release
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends lldb-14=1:14.0.6-12 && \
+    rm -rf /var/lib/apt/lists/* && \
+    cargo install --locked --root /usr/local watchexec-cli@2.8.0
 
-FROM rust:1 as prod
-WORKDIR /app
+WORKDIR /usr/src/app
+COPY Cargo.toml Cargo.lock ./
+RUN cargo fetch
+COPY . .
+RUN cargo build && \
+    cargo build --release && \
+    cp target/release/hello-world /usr/local/bin/hello-world
 
-COPY --from=builder /home/rust/target/release/hello-world /app/hello-world
-CMD /app/hello-world
+FROM debian:bookworm-slim AS prod
+
+COPY --from=dev /usr/local/bin/hello-world /usr/local/bin/hello-world
+CMD ["/usr/local/bin/hello-world"]

@@ -1,34 +1,52 @@
 #![deny(warnings)]
 
 use std::convert::Infallible;
+use std::net::SocketAddr;
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Request, Response, Server};
+use http_body_util::Full;
+use hyper::body::Bytes;
+use hyper::server::conn::http1;
+use hyper::service::service_fn;
+use hyper::{Request, Response};
+use hyper_util::rt::TokioIo;
+use tokio::net::TcpListener;
 
-async fn hello(_: Request<Body>) -> Result<Response<Body>, Infallible> {
-    Ok(Response::new(Body::from("Hello Kubernetes!")))
+async fn hello<B>(_: Request<B>) -> Result<Response<Full<Bytes>>, Infallible> {
+    Ok(Response::new(Full::new(Bytes::from("Hello world!"))))
 }
 
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    pretty_env_logger::init();
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let listener = TcpListener::bind(addr).await?;
+    println!("Starting hello-world server on {addr}...");
 
-    // For every connection, we must make a `Service` to handle all
-    // incoming HTTP requests on said connection.
-    let make_svc = make_service_fn(|_conn| {
-        // This is the `Service` that will handle the connection.
-        // `service_fn` is a helper to convert a function that
-        // returns a Response into a `Service`.
-        async { Ok::<_, Infallible>(service_fn(hello)) }
-    });
+    loop {
+        let (stream, _) = listener.accept().await?;
+        tokio::spawn(async move {
+            let io = TokioIo::new(stream);
+            if let Err(err) = http1::Builder::new()
+                .serve_connection(io, service_fn(hello))
+                .await
+            {
+                eprintln!("Error serving connection: {err}");
+            }
+        });
+    }
+}
 
-    let addr = ([0, 0, 0, 0], 3000).into();
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use http_body_util::BodyExt;
+    use hyper::StatusCode;
 
-    let server = Server::bind(&addr).serve(make_svc);
+    #[tokio::test]
+    async fn hello_returns_hello_world() {
+        let response = hello(Request::new(())).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
 
-    println!("Listening on http://{}", addr);
-
-    server.await?;
-
-    Ok(())
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(body, "Hello world!");
+    }
 }
