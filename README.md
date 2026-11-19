@@ -1,5 +1,5 @@
 # Getting Started with Okteto and Rust
 
-This example shows how to use [Okteto](https://github.com/okteto/okteto) to develop a Rust Sample App directly in Kubernetes. 
+This sample shows how to build, deploy, test, and develop a Rust application on Kubernetes with [Okteto](https://www.okteto.com). Okteto builds its application and development images from the `Dockerfile`, runs its unit tests in a Test Container, and replaces it with a Development Container that has hot reload and a debugger.
 
-This is the application used for the [Getting Started with Okteto and Rust](https://okteto.com/blog/getting-started-with-okteto-and-rust/) blog post.
+Follow the [Getting Started with Okteto and Rust](https://www.okteto.com/docs/development/containers/rust/) guide.

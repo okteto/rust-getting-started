@@ -1,34 +1,38 @@
 #![deny(warnings)]
 
-use std::convert::Infallible;
+use axum::{Router, routing::get};
+use tokio::net::TcpListener;
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Request, Response, Server};
+async fn hello() -> &'static str {
+    "Hello world!"
+}
 
-async fn hello(_: Request<Body>) -> Result<Response<Body>, Infallible> {
-    Ok(Response::new(Body::from("Hello Kubernetes!")))
+fn app() -> Router {
+    Router::new().route("/", get(hello))
 }
 
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    pretty_env_logger::init();
+async fn main() -> std::io::Result<()> {
+    let listener = TcpListener::bind("0.0.0.0:8080").await?;
+    println!("Starting hello-world server on {}...", listener.local_addr()?);
+    axum::serve(listener, app()).await
+}
 
-    // For every connection, we must make a `Service` to handle all
-    // incoming HTTP requests on said connection.
-    let make_svc = make_service_fn(|_conn| {
-        // This is the `Service` that will handle the connection.
-        // `service_fn` is a helper to convert a function that
-        // returns a Response into a `Service`.
-        async { Ok::<_, Infallible>(service_fn(hello)) }
-    });
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
 
-    let addr = ([0, 0, 0, 0], 3000).into();
+    #[tokio::test]
+    async fn hello_returns_hello_world() {
+        let request = Request::builder().uri("/").body(Body::empty()).unwrap();
+        let response = app().oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
 
-    let server = Server::bind(&addr).serve(make_svc);
-
-    println!("Listening on http://{}", addr);
-
-    server.await?;
-
-    Ok(())
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(body, "Hello world!");
+    }
 }
