@@ -3,7 +3,8 @@
 # Git metadata: large, and only needed on your machine
 .git
 
-# Build output generated inside the development container
+# Build output and test reports of your machine. The development container
+# compiles into /usr/src/target, outside the synchronized folder
 /target
 **/*.rs.bk
 /test-report.txt

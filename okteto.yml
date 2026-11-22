@@ -9,16 +9,14 @@ build:
       - dev
 
 deploy:
-  image: alpine/helm:4.3.2
-  commands:
-    - helm upgrade --install hello-world chart --set image=${OKTETO_BUILD_HELLO_WORLD_IMAGE}
+  - envsubst < k8s.yml | kubectl apply -f -
 
 test:
   unit:
     image: ${OKTETO_BUILD_DEV_IMAGE}
     caches:
       - /usr/local/cargo/registry
-      - /okteto/src/target
+      - /usr/src/target
     commands:
       - bash -o pipefail -c "cargo test 2>&1 | tee test-report.txt"
     artifacts:
