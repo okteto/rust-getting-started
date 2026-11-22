@@ -5,7 +5,7 @@
       "name": "Connect to okteto",
       "type": "lldb",
       "request": "attach",
-      "program": "/usr/src/app/target/debug/hello-world",
+      "program": "/usr/src/target/debug/hello-world",
       "initCommands": [
         "platform select remote-linux",
         "platform connect connect://127.0.0.1:2345"
